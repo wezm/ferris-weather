@@ -1,0 +1,13 @@
+{
+  "arch": "powerpc",
+  "data-layout": "E-m:e-p:32:32-i64:64-n32",
+  "disable-redzone": true,
+  "linker": "powerpc-apple-macos-ld",
+  "linker-flavor": "gcc",
+  "llvm-target": "powerpc-unknown-none",
+  "max-atomic-width": 32,
+  "panic-strategy": "abort",
+  "relocation-model": "pic",
+  "target-endian": "big",
+  "target-pointer-width": "32"
+}
