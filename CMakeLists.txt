@@ -26,6 +26,8 @@ add_application(Dialog
     dialog.r
     )
 
+target_link_libraries(Dialog ${CMAKE_SOURCE_DIR}/target/powerpc-apple-macos/release/libclassic_mac_rust.obj)
+
 # Enable -ffunction-sections and -gc-sections to make the app as small as possible
 # On 68K, also enable --mac-single to build it as a single-segment app (so that this code path doesn't rot)
 set_target_properties(Dialog PROPERTIES COMPILE_OPTIONS -ffunction-sections)

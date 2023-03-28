@@ -39,7 +39,7 @@ resource 'DITL' (128) {
 		UserItem { enabled };
 
 		{ 10, 10, 30, 310 },
-		StaticText { enabled, "Static Text Item" };
+		StaticText { enabled, "Hello ^0" };
 
 		{ 40, 10, 56, 310 },
 		EditText { enabled, "Edit Text Item" };

@@ -30,6 +30,8 @@
 #define NewUserItemUPP NewUserItemProc
 #endif
 
+extern ConstStringPtr hello_rust(void);
+
 pascal void ButtonFrameProc(DialogRef dlg, DialogItemIndex itemNo)
 {
     DialogItemType type;
@@ -55,6 +57,10 @@ int main(void)
     DialogPtr dlg = GetNewDialog(128,0,(WindowPtr)-1);
     InitCursor();
     SelectDialogItemText(dlg,4,0,32767);
+
+    ConstStr255Param param1 = hello_rust();
+
+    ParamText(param1, "\p", "\p", "\p");
 
     DialogItemType type;
     Handle itemH;

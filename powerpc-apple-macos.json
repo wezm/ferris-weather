@@ -1,13 +1,14 @@
 {
   "arch": "powerpc",
-  "data-layout": "E-m:e-p:32:32-i64:64-n32",
-  "disable-redzone": true,
-  "linker": "powerpc-apple-macos-ld",
-  "linker-flavor": "gcc",
-  "llvm-target": "powerpc-unknown-none",
+  "data-layout": "E-m:a-p:32:32-i64:64-n32",
+  "executables": true,
+  "llvm-target": "powerpc-ibm-aix",
   "max-atomic-width": 32,
-  "panic-strategy": "abort",
-  "relocation-model": "pic",
+  "os": "macosclassic",
+  "vendor": "apple",
   "target-endian": "big",
-  "target-pointer-width": "32"
+  "target-pointer-width": "32",
+  "linker": "powerpc-apple-macos-gcc",
+  "linker-flavor": "gcc",
+  "linker-is-gnu": true
 }
