@@ -20,39 +20,79 @@
 #include "Dialogs.r"
 
 resource 'DLOG' (128) {
-	{ 50, 100, 240, 420 },
-	dBoxProc,
+	{50, 100, 240, 420},
+	noGrowDocProc,
 	visible,
-	noGoAway,
-	0,
+	goAway,
+	0x0,
 	128,
 	"",
 	centerMainScreen
 };
 
 resource 'DITL' (128) {
-	{
-		{ 190-10-20, 320-10-80, 190-10, 320-10 },
-		Button { enabled, "Quit" };
-
-		{ 190-10-20-5, 320-10-80-5, 190-10+5, 320-10+5 },
-		UserItem { enabled };
-
-		{ 10, 10, 30, 310 },
-		StaticText { enabled, "Hello ^0" };
-
-		{ 40, 10, 56, 310 },
-		EditText { enabled, "Edit Text Item" };
-
-		{ 70, 10, 86, 310 },
-		CheckBox { enabled, "Check Box" };
-
-		{ 90, 10, 106, 310 },
-		RadioButton { enabled, "Radio 1" };
-
-		{ 110, 10, 126, 310 },
-		RadioButton { enabled, "Radio 2" };
+	{	/* array DITLarray: 8 elements */
+		/* [1] */
+		{160, 230, 180, 310},
+		Button {
+			enabled,
+			"Quit"
+		},
+		/* [2] */
+		{155, 225, 185, 315},
+		UserItem {
+			enabled
+		},
+		/* [3] */
+		{70, 10, 90, 310},
+		StaticText {
+			enabled,
+			"Conversion powered by ^0"
+		},
+		/* [4] */
+		{30, 10, 62, 42},
+		Icon {
+			disabled,
+			128
+		},
+		/* [5] */
+		{20, 50, 36, 125},
+		StaticText {
+			disabled,
+			"Celsius"
+		},
+		/* [6] */
+		{20, 170, 36, 245},
+		StaticText {
+			disabled,
+			"Farenheit"
+		},
+		/* [7] */
+		{41, 54, 57, 129},
+		EditText {
+			enabled,
+			"25"
+		},
+		/* [8] */
+		{43, 174, 59, 249},
+		EditText {
+			enabled,
+			"77"
+		}
 	}
+};
+
+#include "Icons.r"
+
+resource 'ICON' (128) {
+        $"0000 0000 0000 E000 0001 1000 0001 1000"
+        $"000D 1000 0001 1000 0001 1000 000D 1000"
+        $"0001 1000 0001 1000 000D 1000 0001 5000"
+        $"0001 5000 000D 5000 0001 5000 0001 5000"
+        $"000D 5000 0001 5000 0001 5000 000D 5000"
+        $"0001 5000 0001 5000 0001 5000 0001 5000"
+        $"0001 5000 0002 4800 0004 4400 0004 E400"
+        $"0004 E400 0004 4400 0002 0800 0001 F0"
 };
 
 #include "Processes.r"
