@@ -1,9 +1,11 @@
 #![no_std]
 #![feature(lang_items)]
 
+extern crate alloc;
+
 mod byte_writer;
 
-use core::ffi::c_uchar;
+use core::ffi::{c_uchar, c_void};
 use core::fmt::Write;
 use core::panic::PanicInfo;
 use core::slice;
@@ -11,6 +13,27 @@ use core::str;
 
 use crate::byte_writer::ByteWriter;
 
+use alloc::alloc::{GlobalAlloc, Layout};
+
+struct Malloc;
+
+extern "C" {
+    fn malloc(size: usize) -> *mut c_void;
+    fn free(ptr: *mut c_void);
+}
+
+unsafe impl GlobalAlloc for Malloc {
+    unsafe fn alloc(&self, layout: Layout) -> *mut u8 {
+        malloc(layout.size()) as *mut u8
+    }
+
+    unsafe fn dealloc(&self, ptr: *mut u8, _layout: Layout) {
+        free(ptr as *mut c_void)
+    }
+}
+
+#[global_allocator]
+static GLOBAL: Malloc = Malloc;
 static MSG: &[u8] = b"\x04Rust";
 
 #[no_mangle]
