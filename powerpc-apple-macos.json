@@ -10,5 +10,6 @@
   "target-pointer-width": "32",
   "linker": "powerpc-apple-macos-gcc",
   "linker-flavor": "gcc",
-  "linker-is-gnu": true
+  "linker-is-gnu": true,
+  "panic-strategy": "abort"
 }

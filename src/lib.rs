@@ -1,19 +1,18 @@
 #![no_std]
-#![feature(lang_items)]
 
 extern crate alloc;
 
 mod byte_writer;
 
+use alloc::alloc::{GlobalAlloc, Layout};
 use core::ffi::{c_uchar, c_void};
 use core::fmt::Write;
-use core::panic::PanicInfo;
 use core::slice;
 use core::str;
 
-use crate::byte_writer::ByteWriter;
+use panic_abort as _;
 
-use alloc::alloc::{GlobalAlloc, Layout};
+use crate::byte_writer::ByteWriter;
 
 struct Malloc;
 
@@ -98,15 +97,6 @@ fn ascii_pascal_to_str<'a>(bytes: *const c_uchar) -> Option<&'a str> {
 fn parse_temp(s: &str) -> f32 {
     s.parse().unwrap_or(0.)
 }
-
-#[panic_handler]
-fn panic(_panic: &PanicInfo<'_>) -> ! {
-    loop {}
-}
-
-#[lang = "eh_personality"]
-#[no_mangle]
-extern "C" fn eh_personality() {}
 
 #[cfg(test)]
 mod tests {
