@@ -22,21 +22,25 @@
 # make
 cmake_minimum_required(VERSION 3.24)
 
-project(MacRust)
+project(TootClassic)
 
-add_application(Dialog
+find_library(OPENTRANSPORT_LIBRARY NAMES libOpenTransportLib.a)
+
+add_application(TootClassic
+    trampoline.c
     dialog.c
     dialog.r
     )
 
-target_link_libraries(Dialog ${CMAKE_SOURCE_DIR}/target/powerpc-apple-macos/release/libclassic_mac_rust.obj)
+target_link_libraries(TootClassic ${CMAKE_SOURCE_DIR}/target/powerpc-apple-macos/release/libclassic_mac_rust.obj)
+target_link_libraries(TootClassic -lOpenTransportAppPPC -lOpenTransportLib -lOpenTptInternetLib)
 
 # Enable -ffunction-sections and -gc-sections to make the app as small as possible
 # On 68K, also enable --mac-single to build it as a single-segment app (so that this code path doesn't rot)
-set_target_properties(Dialog PROPERTIES COMPILE_OPTIONS -ffunction-sections)
+set_target_properties(TootClassic PROPERTIES COMPILE_OPTIONS -ffunction-sections)
 if(CMAKE_SYSTEM_NAME MATCHES Retro68)
-    set_target_properties(Dialog PROPERTIES LINK_FLAGS "-Wl,-gc-sections -Wl,--mac-single")
+    set_target_properties(TootClassic PROPERTIES LINK_FLAGS "-Wl,-gc-sections -Wl,--mac-single")
 
 else()
-    set_target_properties(Dialog PROPERTIES LINK_FLAGS "-Wl,-gc-sections")
+    set_target_properties(TootClassic PROPERTIES LINK_FLAGS "-Wl,-gc-sections")
 endif()

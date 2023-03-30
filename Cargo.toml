@@ -8,8 +8,10 @@ edition = "2021"
 crate-type = ["staticlib", "rlib"]
 
 [dependencies]
+embedded-nal = "0.6.0"
+http_io = { version = "0.2.18", default-features = false, path = "../../Source/github.com/wezm/http_io" }
 panic-abort = "0.3.2"
+#reqwless = { version = "0.5.0", default-features = false }
 
 [profile.release]
-#debug = true
 codegen-units = 1
