@@ -1,7 +1,5 @@
 //! OpenTransport stuff
 
-// Can we implement embedded-nal for OT?
-
 use core::ffi::{c_char, c_uint, c_void};
 use core::mem::MaybeUninit;
 use core::{mem, ptr};
@@ -12,20 +10,12 @@ use crate::toolbox::{Boolean, ByteCount, OSStatus, SInt32, UInt16, UInt32, UInt8
 
 const BUFFER_SIZE: usize = 4096;
 
-// const kOTInvalidEndpointRef:
-
-// struct ProviderRef(*mut c_void);
-// struct EndpointRef(*mut c_void);
-// struct MapperRef(*mut c_void);
-
 type ProviderRef = *mut c_void;
 type EndpointRef = *mut c_void;
-// type MapperRef = *mut c_void;
 
 pub struct OpenTransport {}
 
 pub struct Socket {
-    // buffer: [u8; BUFFER_SIZE],
     endpoint: EndpointRef,
     connected: bool,
     bound: bool,
@@ -323,11 +313,6 @@ extern "C" {
     // OSStatus InitOpenTransport_(void);
     fn InitOpenTransport_() -> OSStatus;
 
-    // EndpointRef OTOpenEndpoint_(
-    // OTConfigurationRef cfig,
-    // OTOpenFlags oflag,
-    // TEndpointInfo *info,        /* can be NULL */
-    // OSStatus *err);
     fn OTOpenEndpoint_(
         cfig: OTConfigurationRef,
         oflag: OTOpenFlags,
@@ -335,33 +320,16 @@ extern "C" {
         err: *mut OSStatus,
     ) -> OTEndpointRef;
 
-    // OTConfigurationRef OTCreateConfiguration_(const char *path);
     fn OTCreateConfiguration_(path: *const c_char) -> OTConfigurationRef;
 
-    // OSStatus OTSetSynchronous_(ProviderRef ref);
     fn OTSetSynchronous_(provider: ProviderRef) -> OSStatus;
 
-    // OSStatus OTSetBlocking_(ProviderRef ref);
     fn OTSetBlocking_(provider: ProviderRef) -> OSStatus;
 
-    // typedef void (*OTNotifyProcPtrC )(void *contextPtr, OTEventCode code, OTResult result, void *cookie);
-    //
-    // typedef struct
-    // {
-    //     OTNotifyProcPtrC proc;
-    //     void *contextPtr;
-    // } NotifyProcContext;
-    //
-    // OSStatus OTInstallNotifier_(ProviderRef ref, NotifyProcContext *ctxt);
     fn OTInstallNotifier_(provider: ProviderRef) -> OSStatus;
 
-    // OSStatus OTUseSyncIdleEvents_(ProviderRef ref, Boolean useEvents);
     fn OTUseSyncIdleEvents_(provider: ProviderRef, use_events: Boolean) -> OSStatus;
 
-    // OSStatus OTBind_(
-    // EndpointRef   ref,
-    // TBind *       reqAddr,       /* can be NULL */
-    // TBind *       retAddr);
     fn OTBind_(endpoint: EndpointRef, req_addr: *mut TBind, ret_addr: *mut TBind) -> OSStatus;
 
     fn OTUnbind_(endpoint: EndpointRef) -> OSStatus;
@@ -399,14 +367,6 @@ extern "C" {
     fn CloseOpenTransport_();
 }
 
-// macro_rules! check {
-//     ($e:expr) => {
-//         let err = $e;
-//         if err != NO_ERR {
-//             return Err(err)
-//         }
-//     };
-// }
 macro_rules! check {
     ($expr:expr $(,)?) => {
         match $expr {
@@ -487,8 +447,6 @@ impl TcpClientStack for OpenTransport {
         socket: &mut Self::TcpSocket,
         remote: SocketAddr,
     ) -> embedded_nal::nb::Result<(), Self::Error> {
-        // OTMemzero(&snd_call, sizeof(TCall));
-        // let mut addr = unsafe { mem::zeroed::<InetAddress>() };
         let mut addr = MaybeUninit::<InetAddress>::uninit();
 
         let ip = match remote.ip() {
@@ -505,9 +463,6 @@ impl TcpClientStack for OpenTransport {
         let mut snd_call = unsafe { mem::zeroed::<TCall>() };
         snd_call.addr.buf = &mut addr as *mut InetAddress as *mut u8; // (UInt8 *) &hostDNSAddress;
         snd_call.addr.len = mem::size_of::<InetAddress>() as ByteCount;
-        // snd_call.addr.len = OTInitDNSAddress(&hostDNSAddress, (char *)
-        //                                     hostName);
-        // err = OTConnect(ep, &snd_call, nil);
         let err = unsafe {
             OTConnect_(
                 socket.endpoint,
