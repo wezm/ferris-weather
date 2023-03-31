@@ -272,3 +272,14 @@ pub fn to_str(data: &[u8]) -> Cow<'_, str> {
             .collect()
     }
 }
+
+pub fn from_str(s: &str) -> Cow<'_, [u8]> {
+    if s.is_ascii() {
+        Cow::from(s.as_bytes())
+    } else {
+        // Uses U+25CA LOZENGE as the replacement character
+        s.chars()
+            .map(|c| char_to_macroman(c).unwrap_or(0xD7))
+            .collect()
+    }
+}

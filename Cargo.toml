@@ -1,5 +1,5 @@
 [package]
-name = "classic-mac-rust"
+name = "classic-weather"
 version = "0.1.0"
 edition = "2021"
 
@@ -8,10 +8,23 @@ edition = "2021"
 crate-type = ["staticlib", "rlib"]
 
 [dependencies]
+classic-common = { path = "common" }
 embedded-nal = "0.6.0"
+embedded-tls = { version = "0.13.0", features = ["alloc"], default-features = false }
 http_io = { version = "0.2.18", default-features = false, path = "../../Source/github.com/wezm/http_io" }
-panic-abort = "0.3.2"
+#panic-abort = "0.3.2"
+serde = { version = "1.0", default-features = false, features = ["alloc", "derive"] }
+serde_json = { version = "1.0", default-features = false, features = ["alloc"] }
 #reqwless = { version = "0.5.0", default-features = false }
 
 [profile.release]
 codegen-units = 1
+
+[features]
+# Used to allow running tests
+std = []
+
+[workspace]
+members = [
+    "common"
+]

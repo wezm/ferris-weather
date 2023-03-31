@@ -8,6 +8,11 @@ DialogItemIndex StopAlert_(SInt16 alertID)
     return StopAlert(alertID, NULL);
 }
 
+DialogItemIndex NoteAlert_(SInt16 alertID)
+{
+    return NoteAlert(alertID, NULL);
+}
+
 void ParamText_(ConstStr255Param param0, ConstStr255Param param1, ConstStr255Param param2, ConstStr255Param param3)
 {
     ParamText(param0, param1, param2, param3);

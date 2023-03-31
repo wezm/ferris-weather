@@ -138,6 +138,8 @@ pub mod consts {
 extern "C" {
     pub fn StopAlert_(id: SInt16) -> DialogItemIndex;
 
+    pub fn NoteAlert_(id: SInt16) -> DialogItemIndex;
+
     pub fn ParamText_(
         param1: ConstStr255Param,
         param2: ConstStr255Param,

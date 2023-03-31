@@ -30,10 +30,6 @@
 #define NewUserItemUPP NewUserItemProc
 #endif
 
-extern ConstStringPtr hello_rust(void);
-extern void ConvertCtoF(unsigned char *, unsigned char *);
-extern void ConvertFtoC(unsigned char *, unsigned char *);
-extern void present_error(OSStatus);
 extern void do_request(void);
 
 Boolean gQuitting = false;
@@ -54,7 +50,7 @@ enum
 // FIle menu
 enum
 {
-    kNewToot = 1,
+    kNewLocation = 1,
     kItemClose = 3,
     kItemQuit = 5,
 };
@@ -71,54 +67,14 @@ pascal void ButtonFrameProc(DialogRef dlg, DialogItemIndex itemNo)
     FrameRoundRect(&box, 16, 16);
 }
 
-#define CELCIUS_ITEM 7
-#define FAREN_ITEM 8
-
 enum
 {
-    kPostButton = 1
+    kGetWeatherButton = 1
 };
 
 void UpdateMenus()
 {
-    // MenuRef m = GetMenuHandle(kMenuFile);
-    // WindowRef w = FrontWindow();
-    //
-    // m = GetMenuHandle(kMenuFile);
-    // if(w && (w == aboutWindow || GetWindowKind(w) < 0))
-    //     EnableItem(m,kItemClose);
-    // else
-    //     DisableItem(m,kItemClose);
-    //
-    // m = GetMenuHandle(kMenuEdit);
-    //
-    // bool enableEditMenu = (w && GetWindowKind(w) < 0);
-    // // Desk accessory in front: Enable edit menu items
-    // // Application window or nothing in front, disable edit menu
-    //
-    // for(short i : {1,3,4,5,6})
-    //     SetItemEnabled(m,i,enableEditMenu);
-    //
-    // m = GetMenuHandle(kMenuConnection);
-    // SetItemEnabled(m, 1, portsAvailable[(int)Port::macTCP]);
-    // CheckMenuItem(m, 1, gPrefs.port == Port::macTCP);
-    // SetItemEnabled(m, 2, portsAvailable[(int)Port::openTptTCP]);
-    // CheckMenuItem(m, 2, gPrefs.port == Port::openTptTCP);
-    // SetItemEnabled(m, 3, portsAvailable[(int)Port::modemPort]);
-    // CheckMenuItem(m, 3, gPrefs.port == Port::modemPort);
-    // SetItemEnabled(m, 4, portsAvailable[(int)Port::printerPort]);
-    // CheckMenuItem(m, 4, gPrefs.port == Port::printerPort);
-    // SetItemEnabled(m, 5, portsAvailable[(int)Port::sharedFiles]);
-    // CheckMenuItem(m, 5, gPrefs.port == Port::sharedFiles);
-    // for(int i = 7; i < kItemChooseFolder; i++)
-    // {
-    //     Str255 str;
-    //     long baud;
-    //     GetMenuItemText(m, i, str);
-    //     StringToNum(str, &baud);
-    //     CheckMenuItem(m, i, baud == gPrefs.baud);
-    //     SetItemEnabled(m, i, gPrefs.port == Port::modemPort || gPrefs.port == Port::printerPort);
-    // }
+    // TODO
 }
 
 void ShowAboutBox(void)
@@ -135,13 +91,6 @@ void DoMenuCommand(long menuCommand)
     if (menuID == kMenuApple) {
         if (menuItem == kItemAbout)
             ShowAboutBox();
-// #if !TARGET_API_MAC_CARBON
-//         else
-//         {
-//             GetMenuItemText(GetMenu(128), menuItem, str);
-//             OpenDeskAcc(str);
-//         }
-// #endif
     }
     else if (menuID == kMenuFile) {
         switch (menuItem) {
@@ -175,35 +124,6 @@ void DoMenuCommand(long menuCommand)
 //             // edit command not handled by desk accessory
 //         }
     }
-    // else if(menuID == kMenuConnection)
-    // {
-    //     switch(menuItem)
-    //     {
-    //         case 1:
-    //             gPrefs.port = Port::macTCP;
-    //             break;
-    //         case 2:
-    //             gPrefs.port = Port::openTptTCP;
-    //             break;
-    //         case 3:
-    //             gPrefs.port = Port::modemPort;
-    //             break;
-    //         case 4:
-    //             gPrefs.port = Port::printerPort;
-    //             break;
-    //         case 5:
-    //             gPrefs.port = Port::sharedFiles;
-    //             break;
-    //         case kItemChooseFolder:
-    //             ChooseSharedDirectory();
-    //             UnloadSeg((void*) &ChooseSharedDirectory);
-    //             break;
-    //         default:
-    //             GetMenuItemText(GetMenuHandle(menuID), menuItem, str);
-    //             StringToNum(str, &gPrefs.baud);
-    //     }
-    //     ConnectionChanged();
-    // }
     HiliteMenu(0);
 }
 
@@ -222,22 +142,6 @@ int main(void)
 
     DialogRef dlg = GetNewDialog(129, 0, (WindowPtr) -1);
     InitCursor();
-    // SelectDialogItemText(dlg,CELCIUS_ITEM,0,32767);
-    //
-    // ConstStr255Param param1 = hello_rust();
-    //
-    // ParamText(param1, "\p", "\p", "\p");
-    //
-    // DialogItemType type;
-    // Handle itemH;
-    // Rect box;
-    //
-    // Str255 celciusStr;
-    // Str255 farenheitStr;
-    //
-    // GetDialogItem(dlg, 2, &type, &itemH, &box);
-    // GetDialogItem(dlg, 2, &type, &itemH, &box);
-    // SetDialogItem(dlg, 2, type, (Handle) NewUserItemUPP(&ButtonFrameProc), &box);
 
     DialogItemIndex item;
     DialogRef theDialog = NULL;
@@ -252,29 +156,8 @@ int main(void)
         if (IsDialogEvent(&ev) && DialogSelect(&ev, &theDialog, &item)) {
             // ModalDialog(NULL, &item);
 
-            // if (item == CELCIUS_ITEM || item == FAREN_ITEM) {
-            //     // Update text values
-            //     GetDialogItem(dlg, CELCIUS_ITEM, &type, &itemH, &box);
-            //     GetDialogItemText(itemH, celciusStr);
-            //     GetDialogItem(dlg, FAREN_ITEM, &type, &itemH, &box);
-            //     GetDialogItemText(itemH, farenheitStr);
-            // }
-            //
             switch (item) {
-                //     // Typed in Celcius field, update Farenheit
-                //     case CELCIUS_ITEM:
-                //         ConvertCtoF(celciusStr, farenheitStr);
-                //         // Update the text of dialog item
-                //         GetDialogItem(dlg, FAREN_ITEM, &type, &itemH, &box); // TODO: Avoid re-getting this?
-                //         SetDialogItemText(itemH, farenheitStr);
-                //         break;
-                //     case FAREN_ITEM:
-                //         ConvertFtoC(farenheitStr, celciusStr);
-                //         // Update the text of dialog item
-                //         GetDialogItem(dlg, CELCIUS_ITEM, &type, &itemH, &box); // TODO: Avoid re-getting this
-                //         SetDialogItemText(itemH, celciusStr);
-                //         break;
-                case kPostButton:
+                case kGetWeatherButton:
                     do_request();
                     break;
             }

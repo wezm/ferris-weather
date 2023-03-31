@@ -2,27 +2,25 @@
 
 extern crate alloc;
 
-mod byte_writer;
-mod mastodon;
 mod toolbox;
+mod weather;
 
 use alloc::alloc::{GlobalAlloc, Layout};
+use alloc::ffi::CString;
 use alloc::vec::Vec;
-use core::ffi::{c_uchar, c_void};
+use core::ffi::{c_char, c_int, c_uchar, c_void};
 use core::fmt::Write;
-use core::slice;
+use core::panic::PanicInfo;
 use core::str;
 
+use classic_common::Str255;
 use embedded_nal::{nb, IpAddr, Ipv4Addr, SocketAddr, TcpClientStack};
 use http_io::client::HttpRequestBuilder;
 use http_io::url::Url;
 use http_io::Read;
 
-use panic_abort as _;
-
-use crate::byte_writer::ByteWriter;
 use crate::toolbox::consts::{EIOErr, EMSGSIZEErr, OTBadAddressErr};
-use crate::toolbox::{OSStatus, OpenTransport, ParamText_, SInt16, Socket, StopAlert_};
+use crate::toolbox::{NoteAlert_, OSStatus, OpenTransport, ParamText_, SInt16, Socket, StopAlert_};
 
 struct Malloc;
 
@@ -43,89 +41,78 @@ unsafe impl GlobalAlloc for Malloc {
 
 #[global_allocator]
 static GLOBAL: Malloc = Malloc;
-static MSG: &[u8] = b"\x04Rust";
+
+#[panic_handler]
+fn panic(panic_info: &PanicInfo<'_>) -> ! {
+    let mut msg = Str255::new();
+    match panic_info.payload().downcast_ref::<&str>() {
+        Some(s) if s.len() < 256 => {
+            write!(msg, "Rust code panicked: {s:?}");
+        }
+        Some(_) => {
+            write!(msg, "Rust code panicked: (message too big)");
+        }
+        None => {
+            write!(msg, "Rust code panicked");
+        }
+    }
+
+    present_error_message(&msg);
+    unsafe { exit(1) };
+}
 
 const ALRT_ID: SInt16 = 128;
+const NOTE_ALRT_ID: SInt16 = 129;
 
-#[no_mangle]
-pub unsafe extern "C" fn hello_rust() -> *const u8 {
-    MSG.as_ptr()
+extern "C" {
+    pub fn printf(format: *const c_char, ...) -> c_int;
+
+    fn exit(status: c_int) -> !;
 }
 
-#[no_mangle]
-pub unsafe extern "C" fn ConvertCtoF(celcius_str: *const c_uchar, faren_str: *mut c_uchar) {
-    do_convert(celcius_str, faren_str, |c| c * 1.8 + 32.0)
-}
-
-#[no_mangle]
-pub unsafe extern "C" fn ConvertFtoC(faren_str: *const c_uchar, celcius_str: *mut c_uchar) {
-    do_convert(faren_str, celcius_str, |f| (f - 32.0) / 1.8)
-}
-
-fn do_convert(in_str: *const c_uchar, out_str: *mut c_uchar, convert: impl Fn(f32) -> f32) {
-    let in_val = match ascii_pascal_to_str(in_str) {
-        Some(s) => parse_temp(s),
-        // If the text is invalid then don't bother updating celcius_str
-        None => return,
-    };
-
-    // Perform the conversion
-    let out_val = convert(in_val);
-
-    // Stringify `out_val` and write the result back to out_str
-    // NOTE(unsafe): It it assumed that out_str is a Str255, which has room for 255 characters
-    let buf = unsafe { slice::from_raw_parts_mut(out_str, 255) };
-    let mut writer = ByteWriter::new(&mut buf[1..]);
-    if write!(writer, "{:.2}", out_val).is_err() {
-        return;
+fn present_error(err: OSStatus) {
+    let mut s = Str255::new();
+    if write!(s, "{}", err).is_err() {
+        panic!("unable to format error code"); // FIXME: Don't panic
     }
 
-    // Set the length
-    buf[0] = writer.len() as c_uchar; // FIXME: Enforce by construction of ByteWriter
-}
+    let empty = Str255::new();
 
-/// Converts a Pascal string containing only 7-bit ASCII characters to a Rust str
-///
-/// Returns None if the Pascal string contains non-ASCII characters
-fn ascii_pascal_to_str<'a>(bytes: *const c_uchar) -> Option<&'a str> {
-    let len = unsafe { *bytes };
-    if len == 0 {
-        return Some("");
+    unsafe {
+        ParamText_(s.as_ptr(), empty.as_ptr(), empty.as_ptr(), empty.as_ptr());
+        StopAlert_(ALRT_ID);
     }
-
-    // NOTE(unsafe): offset _should_ be safe as len is non-zero as checked above
-    let bytes = unsafe { slice::from_raw_parts(bytes.offset(1), usize::from(len)) };
-
-    // Check that all chars are ASCII, if so then create a string slice from the bytes
-    // NOTE(unsafe): from_utf8_unchecked is safe as we checked all bytes are ASCII, which
-    // means they're valid UTF-8 too.
-    bytes
-        .iter()
-        .all(|byte| byte.is_ascii())
-        .then(|| unsafe { str::from_utf8_unchecked(bytes) })
 }
 
-/// Parse a temperature string, return 0 if it fails to parse
-fn parse_temp(s: &str) -> f32 {
-    s.parse().unwrap_or(0.)
+fn present_error_message(msg: &Str255) {
+    let empty = Str255::new();
+
+    unsafe {
+        ParamText_(msg.as_ptr(), empty.as_ptr(), empty.as_ptr(), empty.as_ptr());
+        StopAlert_(ALRT_ID);
+    }
 }
 
-#[no_mangle]
-pub extern "C" fn present_error(err: OSStatus) {
-    let mut buf = [0; 256];
-    let mut writer = ByteWriter::new(&mut buf[1..]);
-    if write!(writer, "{}", err).is_err() {
+fn present_weather(location: &str, temp: f32) {
+    let mut s = Str255::new();
+    if write!(s, "The temperature in {} is {}°C", location, temp).is_err() {
         panic!("unable to format error code");
     }
 
-    // Set the length
-    buf[0] = writer.len() as c_uchar; // FIXME: Enforce by construction of ByteWriter
-
-    let empty = [0; 256];
+    let empty = Str255::new();
 
     unsafe {
-        ParamText_(buf.as_ptr(), empty.as_ptr(), empty.as_ptr(), empty.as_ptr());
-        StopAlert_(ALRT_ID);
+        ParamText_(s.as_ptr(), empty.as_ptr(), empty.as_ptr(), empty.as_ptr());
+        NoteAlert_(NOTE_ALRT_ID);
+    }
+}
+
+fn present_note(msg: &Str255) {
+    let empty = Str255::new();
+
+    unsafe {
+        ParamText_(msg.as_ptr(), empty.as_ptr(), empty.as_ptr(), empty.as_ptr());
+        StopAlert_(NOTE_ALRT_ID);
     }
 }
 
@@ -133,19 +120,26 @@ pub extern "C" fn present_error(err: OSStatus) {
 pub extern "C" fn do_request() {
     match try_do_request() {
         Ok(()) => (),
-        Err(err) => present_error(err),
+        Err(err) => {
+            let mut s = Str255::new();
+            if write!(s, "try_do_request failed: {}", err).is_err() {
+                panic!("unable to format error code");
+            }
+
+            present_error_message(&s)
+        }
     }
 }
 
 fn try_do_request() -> Result<(), OSStatus> {
-    let url: Url = "http://jackkelly.name/"
+    let url: Url = "http://www.7bit.org/weather.json"
         .parse()
         .map_err(|_| OTBadAddressErr)?;
 
     let mut ot = OpenTransport::init()?;
 
     let mut socket = ot.socket()?;
-    let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(139, 180, 175, 151)), 80);
+    let addr = SocketAddr::new(IpAddr::V4(Ipv4Addr::new(45, 76, 112, 252)), 80);
 
     loop {
         match ot.connect(&mut socket, addr) {
@@ -154,10 +148,13 @@ fn try_do_request() -> Result<(), OSStatus> {
             Err(nb::Error::Other(status)) => return Err(status),
         }
     }
+    // unsafe {
+    //     printf(b"connected\n\0".as_ptr() as *const c_char);
+    // }
 
     let socket = OTSocket {
         ot: &mut ot,
-        socket,
+        socket: Some(socket),
     };
 
     let mut response = HttpRequestBuilder::get(url)
@@ -166,6 +163,16 @@ fn try_do_request() -> Result<(), OSStatus> {
         .map_err(|_| OTBadAddressErr)?
         .finish()
         .map_err(|_| OTBadAddressErr)?;
+    let content_len = match response.body.content_length() {
+        Some(len) => len as i32,
+        None => -1,
+    };
+    // unsafe {
+    //     printf(
+    //         b"got response of len %d\n\0".as_ptr() as *const c_char,
+    //         content_len,
+    //     );
+    // }
 
     let mut sink = match response.body.content_length() {
         Some(len) if len < 500 * 1024 => Vec::with_capacity(len as usize),
@@ -177,40 +184,68 @@ fn try_do_request() -> Result<(), OSStatus> {
     loop {
         match response.body.read(&mut buf) {
             Ok(0) => break,
-            Ok(n) => sink.extend_from_slice(&buf[..n]),
+            Ok(n) => {
+                sink.extend_from_slice(&buf[..n]);
+                // unsafe {
+                //     printf(b"read %u bytes\n\0".as_ptr() as *const c_char, n);
+                // }
+            }
             Err(http_io::error::Error::OSStatus(status)) => return Err(status),
             Err(_other) => return Err(EIOErr), // TODO: try to map http_io errors to statuses? or create a better error type fro this function
         }
     }
+    // let mut note = Str255::new();
+    // let _ = write!(note, "read response body, got {} bytes", sink.len());
+    // present_note(&note);
 
-    let mut buf = [0; 256];
-    let mut writer = ByteWriter::new(&mut buf[1..]);
-    if write!(writer, "Read {} bytes", sink.len()).is_err() {
-        panic!("unable to format message");
+    // let OTSocket { socket, .. } = socket;
+
+    match weather::parse(&sink) {
+        Ok(Some(observation)) => present_weather(&observation.name, observation.air_temp),
+        Ok(None) => {
+            let mut s = Str255::new();
+            if write!(s, "no observations available").is_err() {
+                panic!("unable to format error code");
+            }
+
+            present_error_message(&s)
+        }
+        Err(err) => {
+            let mut s = Str255::new();
+            if write!(s, "unable to parse JSON: {}", err).is_err() {
+                panic!("unable to format error code");
+            }
+
+            present_error_message(&s);
+            let limit = 1024.min(sink.len());
+            let res_text = CString::new(&sink[..limit]).unwrap();
+            // unsafe {
+            //     printf(b"%s\n\0".as_ptr() as *const c_char, res_text.as_ptr());
+            // }
+        }
     }
-
-    // Set the length
-    buf[0] = writer.len() as c_uchar; // FIXME: Enforce by construction of ByteWriter
-
-    let empty = [0; 256];
-
-    unsafe {
-        ParamText_(buf.as_ptr(), empty.as_ptr(), empty.as_ptr(), empty.as_ptr());
-        StopAlert_(ALRT_ID);
-    }
+    // unsafe {
+    //     printf(b"done\n\0".as_ptr() as *const c_char);
+    // }
 
     Ok(())
 }
 
 struct OTSocket<'a> {
     ot: &'a mut OpenTransport,
-    socket: Socket,
+    socket: Option<Socket>,
 }
 
-impl http_io::Read for OTSocket<'_> {
+impl Drop for OTSocket<'_> {
+    fn drop(&mut self) {
+        let _ = self.ot.close(self.socket.take().unwrap());
+    }
+}
+
+impl Read for OTSocket<'_> {
     fn read(&mut self, buf: &mut [u8]) -> http_io::error::Result<usize> {
         loop {
-            match self.ot.receive(&mut self.socket, buf) {
+            match self.ot.receive(self.socket.as_mut().unwrap(), buf) {
                 Ok(nbytes) => return Ok(nbytes),
                 Err(nb::Error::WouldBlock) => continue,
                 Err(nb::Error::Other(status)) => {
@@ -226,7 +261,7 @@ impl http_io::Read for OTSocket<'_> {
 impl http_io::Write for OTSocket<'_> {
     fn write(&mut self, buf: &[u8]) -> http_io::error::Result<usize> {
         loop {
-            match self.ot.send(&mut self.socket, buf) {
+            match self.ot.send(&mut self.socket.as_mut().unwrap(), buf) {
                 Ok(nbytes) => return Ok(nbytes),
                 Err(nb::Error::WouldBlock) => continue,
                 Err(nb::Error::Other(status)) => {

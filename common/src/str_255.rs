@@ -66,11 +66,12 @@ impl Str255 {
 impl fmt::Write for Str255 {
     fn write_str(&mut self, s: &str) -> fmt::Result {
         let offset = 1 + self.len();
+        let s = macroman::from_str(s);
         self.buf[offset..]
-            .get_mut(..s.as_bytes().len())
+            .get_mut(..s.len())
             .ok_or(fmt::Error)
-            .map(|buf| buf.copy_from_slice(s.as_bytes()))?;
-        self.buf[0] += s.as_bytes().len() as u8;
+            .map(|buf| buf.copy_from_slice(&s))?;
+        self.buf[0] += s.len() as u8;
         Ok(())
     }
 }

@@ -37,7 +37,7 @@ resource 'DLOG' (129) {
 	goAway,
 	0x0,
 	130,
-	"New Toot",
+	"Ferris Weather",
 	staggerMainScreen
 };
 
@@ -116,25 +116,42 @@ resource 'DITL' (129, "Error") {
 	}
 };
 
-resource 'DITL' (130, "Toot") {
+resource 'DITL' (130, "Weather Conditions") {
 	{	/* array DITLarray: 3 elements */
 		/* [1] */
-		{90, 280, 110, 338},
+		{90, 240, 110, 338},
 		Button {
 			enabled,
-			"Post"
+			"Get Weather"
 		},
 		/* [2] */
 		{10, 60, 70, 340},
-		EditText {
-			enabled,
-			"Edit Text"
+		StaticText {
+			disabled,
+			"An application that exercises my Open Transport Rust bindings and HTTP client."
 		},
 		/* [3] */
 		{10, 10, 42, 42},
 		Icon {
 			disabled,
 			129
+		}
+	}
+};
+
+resource 'DITL' (131, "Note") {
+	{	/* array DITLarray: 2 elements */
+		/* [1] */
+		{70, 190, 90, 248},
+		Button {
+			enabled,
+			"OK"
+		},
+		/* [2] */
+		{10, 70, 59, 251},
+		StaticText {
+			disabled,
+			"^0"
 		}
 	}
 };
@@ -185,17 +202,33 @@ resource 'SIZE' (-1) {
 	reserved,
 	reserved,
 #ifdef TARGET_API_MAC_CARBON
-	500 * 1024,	// Carbon apparently needs additional memory.
-	500 * 1024
+	1000 * 1024,	// Carbon apparently needs additional memory.
+	1000 * 1024
 #else
-	100 * 1024,
-	100 * 1024
+	500 * 1024,
+	500 * 1024
 #endif
 };
 
 resource 'ALRT' (128) {
 	{40, 40, 140, 300},
 	129,
+	{	/* array: 4 elements */
+		/* [1] */
+		OK, visible, sound1,
+		/* [2] */
+		OK, visible, sound1,
+		/* [3] */
+		OK, visible, sound1,
+		/* [4] */
+		OK, visible, sound1
+	},
+	alertPositionMainScreen
+};
+
+resource 'ALRT' (129) {
+	{40, 40, 140, 300},
+	131,
 	{	/* array: 4 elements */
 		/* [1] */
 		OK, visible, sound1,
@@ -216,7 +249,7 @@ resource 'MENU' (128) {
     allEnabled, enabled;
     apple;
     {
-        "About Toot Classic...", noIcon, noKey, noMark, plain;
+        "About Classic Weather...", noIcon, noKey, noMark, plain;
         "-", noIcon, noKey, noMark, plain;
     }
 };
@@ -226,7 +259,7 @@ resource 'MENU' (129) {
     allEnabled, enabled;
     "File";
     {
-        "New Toot", noIcon, "N", noMark, plain;
+        "New Location", noIcon, "N", noMark, plain;
         "-", noIcon, noKey, noMark, plain;
         "Close", noIcon, "W", noMark, plain;
         "-", noIcon, noKey, noMark, plain;

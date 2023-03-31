@@ -1,7 +1,11 @@
-Rust on Classic Mac OS
-======================
+Ferris Weather
+==============
 
-This repo includes my experiments running Rust code on PPC classic Mac OS.
+A demo app to try building a networked Rust application for PPC classic Mac OS.
+This application fetches some JSON from my server, parses it with serde and
+shows an alert with the temperature (the file on the server doesn't change).
+
+![Screenshot of Ferris Weather](Ferris%20Weather.png)
 
 Building
 --------
@@ -38,25 +42,25 @@ Convert the static library to XCOFF, either via Docker or `powerpc-linux-gnu-obj
 directly:
 
 ```
-docker run --rm -it -v $(pwd):/src binutils-objcopy -O aixcoff-rs6000 /src/target/powerpc-apple-macos/release/libclassic_mac_rust.a /src/target/powerpc-apple-macos/release/libclassic_mac_rust.obj
+docker run --rm -it -v $(pwd):/src binutils-objcopy -O aixcoff-rs6000 /src/target/powerpc-apple-macos/release/libclassic_weather.a /src/target/powerpc-apple-macos/release/libclassic_weather.obj
 ```
 
 Build the C code, link in the Rust code, and produce the final binary:
 
 ```
-cmake --build build --target Dialog_APPL
+cmake --build build --target FerrisWeather_APPL
 ```
 
 ### Running
 
-`Dialog.bin` is the MacBinary encoded application, you can copy this to a
+`FerrisWeather.bin` is the MacBinary encoded application, you can copy this to a
 machine or emulator to run it. Retro68 provides the `LaunchAAPL` tool, which
 combined with its server counterpart makes this very easy. With the server
 running on a machine or emulator you can launch the binary directly from you
 host with:
 
 ```
-LaunchAPPL -e tcp --tcp-address 127.0.0.1 build/Dialog.bin
+LaunchAPPL -e tcp --tcp-address 127.0.0.1 build/FerrisWeather.bin
 ```
 
 [Retro68]: https://github.com/wezm/Retro68/tree/binutils

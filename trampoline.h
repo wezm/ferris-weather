@@ -13,6 +13,7 @@
 
 // Dialogs.h
 DialogItemIndex StopAlert_(SInt16 alertID);
+DialogItemIndex NoteAlert_(SInt16 alertID);
 
 void ParamText_(
     ConstStr255Param param0,
