@@ -63,4 +63,11 @@ host with:
 LaunchAPPL -e tcp --tcp-address 127.0.0.1 build/FerrisWeather.bin
 ```
 
+### Notes
+
+The `rust-toolchain.toml` captures the nightly Rust version I used. More recent
+changes to the Rust compiler mean versions after `nightly-2023-08-02` don't
+work. See [this issue](https://github.com/wezm/ferris-weather/issues/1) for
+more details.
+
 [Retro68]: https://github.com/wezm/Retro68/tree/binutils
